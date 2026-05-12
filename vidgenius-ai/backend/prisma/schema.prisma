@@ -1,0 +1,35 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// --- TABLA DE USUARIOS ---
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  password  String
+  videos    Video[]  // <-- ¡Magia! Aquí le decimos que un usuario tiene muchos vídeos
+  credits   Int      @default(5)
+  createdAt DateTime @default(now())
+}
+
+// --- NUEVA TABLA DE VÍDEOS ---
+model Video {
+  id          Int      @id @default(autoincrement())
+  title       String   // Título del vídeo
+  topic       String   // De qué trata el vídeo (lo que escribirá el usuario)
+  script      String?  // El guion que nos generará la IA (opcional al principio)
+  videoUrl    String?  // La URL del vídeo final renderizado
+  thumbnailUrl String? // La URL de la miniatura del vídeo
+  
+  // Relación con el Usuario (Quién es el dueño de este vídeo)
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  
+  createdAt   DateTime @default(now())
+}
