@@ -81,7 +81,8 @@ export default function History({ token, onLoadVideo }: HistoryProps) {
             <div key={video.id} className="bg-gray-800 rounded-2xl border border-gray-700 shadow-2xl overflow-hidden hover:border-red-500 transition-all duration-300 group flex flex-col">
               {/* Miniatura del vídeo (Coge el primer frame del videoUrl) */}
               <div className="relative h-48 bg-black border-b border-gray-700 overflow-hidden">
-                {video.src={video.thumbnailUrl} alt={video.title} className="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" />
+                {video.thumbnailUrl ? (
+                  <img src={video.thumbnailUrl} alt={video.title} className="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" />
                 ) : video.videoUrl ? (
                   <video src={video.videoUrl} className="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" preload="metadata" muted playsInline />
                 ) : (
