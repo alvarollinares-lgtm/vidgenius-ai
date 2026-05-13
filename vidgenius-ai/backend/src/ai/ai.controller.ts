@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Request, Get, Res, Query, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Request, Get, Res, Query, UseInterceptors, UploadedFile, Delete, Param } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
@@ -77,5 +77,12 @@ export class AiController {
       'Content-Disposition': 'attachment; filename="VidGenius_Final.mp4"',
     });
     res.end(videoBuffer);
+  }
+
+  // Endpoint para borrar un vídeo del historial
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('video/:id')
+  async deleteVideo(@Param('id') id: string, @Request() req: any) {
+    return this.aiService.deleteVideo(Number(id), req.user.userId);
   }
 }

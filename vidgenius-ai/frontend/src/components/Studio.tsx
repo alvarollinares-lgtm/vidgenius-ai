@@ -33,6 +33,7 @@ export default function Studio({
   const [selectedVideoModel, setSelectedVideoModel] = useState('wan');
   const [duration, setDuration] = useState('60'); // 60 segundos por defecto
   const [orientation, setOrientation] = useState<'16:9' | '9:16'>('16:9');
+  const [language, setLanguage] = useState('Español');
   const [stability, setStability] = useState(0.5);
   const [similarity, setSimilarity] = useState(0.75);
   const [showAdvancedVoice, setShowAdvancedVoice] = useState(false);
@@ -90,8 +91,8 @@ export default function Studio({
       const formData = new FormData();
       
       // Inyectamos la duración directamente en el tema para que la IA la respete
-      const topicWithDuration = `${topic} (IMPORTANTE: El guion debe estar escrito para durar aproximadamente ${duration} segundos. Ajusta la longitud de tus palabras estrictamente a este tiempo)`;
-      formData.append('topic', topicWithDuration);
+      const topicWithParams = `${topic} (IMPORTANTE: El guion debe estar escrito para durar aproximadamente ${duration} segundos. Ajusta la longitud de tus palabras estrictamente a este tiempo. Escribe TODO el guion, el título y la descripción obligatoriamente en el idioma: ${language})`;
+      formData.append('topic', topicWithParams);
       
       formData.append('model', selectedModel);
       formData.append('videoModel', selectedVideoModel);
@@ -293,7 +294,7 @@ export default function Studio({
       )}
 
       {/* Selectores de IA */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <div className="flex-1">
           <label className="block text-sm font-medium mb-1 text-gray-300">🧠 Modelo de Guionista</label>
           <select value={selectedModel} onChange={(e) => setSelectedModel(e.target.value)} className="w-full p-2 rounded-lg bg-gray-900 border border-gray-600 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all">
@@ -304,6 +305,7 @@ export default function Studio({
             <optgroup label="Modelos Premium (Vía OpenRouter)">
               <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet (El más creativo)</option>
               <option value="google/gemini-1.5-pro">Gemini 1.5 Pro (Excelente razonamiento)</option>
+              <option value="perplexity/llama-3.1-sonar-large-128k-online">Perplexity Sonar (Búsqueda en Internet)</option>
             </optgroup>
           </select>
         </div>
@@ -369,6 +371,18 @@ export default function Studio({
             <option value="120">Vídeo Corto (2 minutos)</option>
             <option value="300">Vídeo Largo (5 minutos)</option>
           </select>
+        </div>
+        <div className="flex-1">
+          <label className="block text-sm font-medium mb-1 text-gray-300">🌍 Idioma del Vídeo</label>
+          <select value={language} onChange={(e) => setLanguage(e.target.value)} className="w-full p-2 rounded-lg bg-gray-900 border border-gray-600 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all">
+            <option value="Español">🇪🇸 Español</option>
+            <option value="Inglés">🇬🇧 Inglés</option>
+            <option value="Portugués">🇵🇹 Portugués</option>
+            <option value="Francés">🇫🇷 Francés</option>
+            <option value="Alemán">🇩🇪 Alemán</option>
+            <option value="Italiano">🇮🇹 Italiano</option>
+          </select>
+          <p className="text-[10px] text-gray-500 mt-1">Usa ElevenLabs para idiomas extranjeros.</p>
         </div>
       </div>
 

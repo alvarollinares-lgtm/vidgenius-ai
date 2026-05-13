@@ -68,6 +68,27 @@ export default function History({ token, onLoadVideo }: HistoryProps) {
     }
   };
 
+  const handleDelete = async (videoId: number, title: string) => {
+    if (!confirm(`¿Estás seguro de que quieres borrar el vídeo "${title}"? Esta acción borrará el archivo del servidor y no se puede deshacer.`)) return;
+    
+    try {
+      const response = await fetch(`${API_URL}/ai/video/${videoId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        setVideos(prev => prev.filter(v => v.id !== videoId));
+      } else {
+        alert('Error al borrar el vídeo del servidor.');
+      }
+    } catch (error) {
+      console.error('Error borrando:', error);
+      alert('Error de conexión con el backend al intentar borrar.');
+    }
+  };
+
   return (
     <div className="space-y-4">
       <h2 className="text-2xl font-bold mb-4 text-gray-200">Tus Vídeos Guardados</h2>
@@ -81,6 +102,13 @@ export default function History({ token, onLoadVideo }: HistoryProps) {
             <div key={video.id} className="bg-gray-800 rounded-2xl border border-gray-700 shadow-2xl overflow-hidden hover:border-red-500 transition-all duration-300 group flex flex-col">
               {/* Miniatura del vídeo (Coge el primer frame del videoUrl) */}
               <div className="relative h-48 bg-black border-b border-gray-700 overflow-hidden">
+                <button 
+                  onClick={() => handleDelete(video.id, video.title)}
+                  className="absolute top-3 right-3 bg-red-600/80 hover:bg-red-500 text-white w-8 h-8 flex items-center justify-center rounded-full backdrop-blur-sm transition z-10 shadow-lg border border-red-400"
+                  title="Borrar vídeo permanentemente"
+                >
+                  🗑️
+                </button>
                 {video.thumbnailUrl ? (
                   <img src={video.thumbnailUrl} alt={video.title} className="w-full h-full object-cover opacity-70 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" />
                 ) : video.videoUrl ? (

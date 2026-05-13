@@ -318,6 +318,36 @@ REGLAS ESTRICTAS:
     });
   }
 
+  // Nueva función para borrar un vídeo y liberar espacio en Supabase
+  async deleteVideo(videoId: number, userId: number) {
+    try {
+      const video = await this.prisma.video.findUnique({
+        where: { id: videoId },
+      });
+
+      if (!video || video.userId !== userId) {
+        throw new NotFoundException('Vídeo no encontrado o no tienes permisos');
+      }
+
+      // 1. Borramos los archivos físicos de Supabase para no ocupar espacio
+      if (video.videoUrl && video.videoUrl.includes('supabase')) {
+        const fileName = video.videoUrl.split('/').pop();
+        if (fileName) await this.supabase.storage.from('videos').remove([fileName]);
+      }
+      if (video.thumbnailUrl && video.thumbnailUrl.includes('supabase')) {
+        const thumbName = video.thumbnailUrl.split('/').pop();
+        if (thumbName) await this.supabase.storage.from('videos').remove([thumbName]);
+      }
+
+      // 2. Borramos el registro de la base de datos de Prisma
+      await this.prisma.video.delete({ where: { id: videoId } });
+      return { message: 'Vídeo y archivos eliminados con éxito' };
+    } catch (error: any) {
+      this.logger.error('Error borrando vídeo:', error.stack);
+      throw new InternalServerErrorException('Error al borrar: ' + error.message);
+    }
+  }
+
   // Nueva función para enviar datos al Webhook de n8n
   async publishVideo(videoId: number, userId: number, platforms: string[] = ['tiktok']) {
     try {
