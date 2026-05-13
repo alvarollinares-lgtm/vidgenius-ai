@@ -15,6 +15,7 @@ model User {
   password  String
   videos    Video[]  // <-- ¡Magia! Aquí le decimos que un usuario tiene muchos vídeos
   credits   Int      @default(5)
+  n8nWebhookUrl String? 
   createdAt DateTime @default(now())
 }
 

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
 interface AuthFormProps {
   onLogin: (token: string) => void;
 }
@@ -21,7 +23,7 @@ export default function AuthForm({ onLogin }: AuthFormProps) {
     const payload = isLogin ? { email, password } : { name, email, password };
 
     try {
-      const res = await fetch(`http://localhost:3000${endpoint}`, {
+      const res = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -76,7 +78,7 @@ export default function AuthForm({ onLogin }: AuthFormProps) {
           </div>
           <div className="text-center mt-4">
             <button type="button" onClick={() => { setIsLogin(!isLogin); setError(''); }} className="text-sm text-red-400 hover:text-red-300 transition-colors">
-              {isLogin ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
+              {isLogin ? '¿No tienes factura? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
             </button>
           </div>
         </form>

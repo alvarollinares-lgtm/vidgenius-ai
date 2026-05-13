@@ -219,7 +219,11 @@ REGLAS ESTRICTAS:
       // 1. Comprobar si el usuario tiene créditos suficientes
       const user = await this.prisma.user.findUnique({ where: { id: userId } });
       if (!user) throw new InternalServerErrorException('Usuario no encontrado');
-      if (user.credits <= 0) {
+      
+      // ESTRATEGIA 1: Modo Dios para el creador (Cambia este email por el tuyo)
+      const isAdmin = user.email === 'allinare@hotmail.com';
+
+      if (user.credits <= 0 && !isAdmin) {
         throw new InternalServerErrorException('No te quedan créditos. ¡Vuelve más tarde o mejora tu plan!');
       }
 
@@ -274,7 +278,7 @@ REGLAS ESTRICTAS:
       }
 
       // 2. Guardar el vídeo y descontar 1 crédito al mismo tiempo (Transacción)
-      const [newVideo, updatedUser] = await this.prisma.$transaction([
+      const txOperations: any[] = [
         this.prisma.video.create({
           data: {
             title: title,
@@ -284,12 +288,17 @@ REGLAS ESTRICTAS:
             thumbnailUrl: thumbnailUrl,
             userId: userId,
           },
-        }),
-        this.prisma.user.update({
+        })
+      ];
+
+      if (!isAdmin) {
+        txOperations.push(this.prisma.user.update({
           where: { id: userId },
           data: { credits: { decrement: 1 } }
-        })
-      ]);
+        }));
+      }
+
+      const [newVideo] = await this.prisma.$transaction(txOperations);
 
       return {
         message: 'Guion generado y guardado con éxito',
@@ -320,7 +329,11 @@ REGLAS ESTRICTAS:
         throw new NotFoundException('Vídeo no encontrado o no tienes permisos');
       }
 
-      const webhookUrl = 'https://n8n-llinaria.yfciuh.easypanel.host/webhook/d92259d5-6d79-4b4e-84fa-3a41f0917a45';
+      // Obtenemos al usuario para saber si tiene un webhook propio configurado
+      const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+      // ESTRATEGIA 2: SaaS Multi-tenant. Si el cliente tiene su webhook, úsalo. Si no, usa el tuyo.
+      const webhookUrl = (user as any).n8nWebhookUrl || 'https://n8n-llinaria.yfciuh.easypanel.host/webhook/d92259d5-6d79-4b4e-84fa-3a41f0917a45';
 
       // Enviamos los metadatos del vídeo a n8n
       const response = await fetch(webhookUrl, {

@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 interface StudioProps {
   token: string;
@@ -35,6 +38,9 @@ export default function Studio({
   const [selectedChannels, setSelectedChannels] = useState<string[]>(['Canal 1 (Principal)']);
   const [customVideoFile, setCustomVideoFile] = useState<File | null>(null);
 
+  // Obtenemos los datos del usuario logueado
+  const { user, fetchUser } = useAuth();
+
   // Al salir del estudio, limpiamos los audios que estén reproduciéndose
   useEffect(() => {
     return () => {
@@ -47,7 +53,7 @@ export default function Studio({
     setIsSuggesting(true);
     setMessage('Buscando tendencias virales en internet... 🌍');
     try {
-      const response = await fetch(`http://localhost:3000/ai/suggest-topics?model=${encodeURIComponent(selectedModel)}`, {
+      const response = await fetch(`${API_URL}/ai/suggest-topics?model=${encodeURIComponent(selectedModel)}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const topics = await response.json();
@@ -86,7 +92,7 @@ export default function Studio({
         formData.append('customVideo', customVideoFile);
       }
 
-      const response = await fetch('http://localhost:3000/ai/generate-script', {
+      const response = await fetch(`${API_URL}/ai/generate-script`, {
         method: 'POST',
         headers: { 
           'Authorization': `Bearer ${token}`
@@ -103,6 +109,8 @@ export default function Studio({
         setScript(data.video.script || '');
         setVideoUrl(data.video.videoUrl || '');
         setVideoId(data.video.id);
+        // Refrescamos para restar el crédito gastado en pantalla
+        fetchUser();
       } else {
         setMessage(`Error: ${data.message || 'No se pudo generar'}`);
       }
@@ -146,7 +154,7 @@ export default function Studio({
     setMessage('🎤 Generando voz hiperrealista (esto puede tardar unos segundos)...');
 
     try {
-      const response = await fetch('http://localhost:3000/ai/generate-audio', {
+      const response = await fetch(`${API_URL}/ai/generate-audio`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -190,7 +198,7 @@ export default function Studio({
     try {
       const voiceToUse = selectedVoice === 'browser' ? 'google-es-journey-f' : selectedVoice;
       
-      const response = await fetch('http://localhost:3000/ai/merge-video', {
+      const response = await fetch(`${API_URL}/ai/merge-video`, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -237,7 +245,7 @@ export default function Studio({
     setMessage('🚀 Enviando vídeo a n8n para publicación...');
 
     try {
-      const response = await fetch('http://localhost:3000/ai/publish-video', {
+      const response = await fetch(`${API_URL}/ai/publish-video`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -260,6 +268,19 @@ export default function Studio({
 
   return (
     <div className="bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700">
+      {/* Cabecera del Estudio con Datos del Usuario */}
+      {user && (
+        <div className="flex justify-between items-center mb-6 bg-gray-900/50 p-4 rounded-xl border border-gray-700">
+          <h2 className="text-xl font-extrabold text-white">🎬 Estudio de Grabación</h2>
+          <div className="flex items-center gap-3">
+            <span className="text-gray-300 font-medium">👋 Hola, {user.name}</span>
+            <span className="bg-gradient-to-r from-red-600 to-rose-600 text-white text-sm font-bold px-3 py-1.5 rounded-full shadow-lg border border-red-500">
+              🪙 {user.credits} Créditos
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Selectores de IA */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="flex-1">
@@ -280,30 +301,13 @@ export default function Studio({
               <option value="google-es-journey-f">Google Premium (Femenina Hiperrealista)</option>
               <option value="google-es-journey-d">Google Premium (Masculina Hiperrealista)</option>
             </optgroup>
-            <optgroup label="Otras voces (Pueden dar error sin pago)">
-              <option value="RgXx32WYOGrd7gFNifSf">Tu Voz Favorita (Nueva)</option>
-              <option value="TxGEqnHWrfWFTfGW9XjX">Josh (Masculino / Dinámico)</option>
-              <option value="EXAVITQu4vr4xnSDxMaL">Bella (Femenina / Suave)</option>
-              <option value="ErXwobaYiN019PkySvjV">Antoni (Masculino / Amable)</option>
-              <option value="pNInz6obpgDQGcFmaJgB">Adam (Masculino / Profundo)</option>
-              <option value="MF3mGyEYCl7XYWbV9V6O">Elli (Femenina / Emotiva)</option>
-              <option value="N2lVS1w4EtoT3dr4eOWO">Callum (Masculino / Épico)</option>
-            </optgroup>
           </select>
         </div>
         <div className="flex-1">
           <label className="block text-sm font-medium mb-1 text-gray-300">🎥 Vídeo de Fondo</label>
           <select value={selectedVideoModel} onChange={(e) => setSelectedVideoModel(e.target.value)} className="w-full p-2 rounded-lg bg-gray-900 border border-gray-600 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all">
-            <optgroup label="Imágenes e IA Estática">
-              <option value="google-imagen">Google Imagen 3 (Vía Google Cloud)</option>
-            </optgroup>
             <optgroup label="IA Generativa de Vídeo (APIs Premium)">
               <option value="wan">Wan Video (Vía Fal.ai / Replicate)</option>
-              <option value="kling">Kling AI (API Oficial)</option>
-              <option value="runway">Runway Gen-3 (API Oficial)</option>
-            </optgroup>
-            <optgroup label="Estudios Propios">
-              <option value="comfyui">ComfyUI (Tu propio Servidor/RunPod)</option>
             </optgroup>
             <optgroup label="Recursos Gratuitos">
               <option value="pexels">Pexels (Vídeos Reales - Gratis)</option>

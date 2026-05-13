@@ -3,20 +3,24 @@ import AuthForm from './components/AuthForm';
 import Navbar from './components/Navbar';
 import History from './components/History';
 import Studio from './components/Studio';
+import Pricing from './components/Pricing';
+import Settings from './components/Settings';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { useStudioState } from './useStudioState';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 function AppContent() {
   const { token, login, logout } = useAuth();
   const { reset, ...studioProps } = useStudioState();
-  const [view, setView] = useState<'studio' | 'history'>('studio');
+  const [view, setView] = useState<'studio' | 'history' | 'pricing' | 'settings'>('studio');
   const [credits, setCredits] = useState<number | null>(null);
   const [videoId, setVideoId] = useState<number | null>(null);
 
   const fetchProfile = async () => {
     if (!token) return;
     try {
-      const res = await fetch('http://localhost:3000/auth/perfil', {
+      const res = await fetch(`${API_URL}/auth/perfil`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
@@ -45,14 +49,15 @@ function AppContent() {
           {/* Barra de Navegación */}
           <Navbar view={view} setView={setView} onLogout={handleLogout} credits={credits} />
           
-          {view === 'studio' ? (
+          {view === 'studio' && (
             <Studio 
               token={token}
               {...studioProps}
               videoId={videoId}
               setVideoId={setVideoId}
             />
-          ) : (
+          )}
+          {view === 'history' && (
             <History 
               token={token} 
               onLoadVideo={(video) => {
@@ -66,6 +71,8 @@ function AppContent() {
               }} 
             />
           )}
+          {view === 'pricing' && <Pricing />}
+          {view === 'settings' && <Settings />}
         </div>
       </div>
     );

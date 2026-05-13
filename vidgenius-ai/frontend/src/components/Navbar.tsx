@@ -1,6 +1,6 @@
 interface NavbarProps {
-  view: 'studio' | 'history';
-  setView: (view: 'studio' | 'history') => void;
+  view: 'studio' | 'history' | 'pricing' | 'settings';
+  setView: (view: 'studio' | 'history' | 'pricing' | 'settings') => void;
   onLogout: () => void;
   credits?: number | null;
 }
@@ -19,6 +19,8 @@ export default function Navbar({ view, setView, onLogout, credits }: NavbarProps
         <div className="space-x-4">
           <button onClick={() => setView('studio')} className={`text-sm transition-colors ${view === 'studio' ? 'text-red-400 font-bold border-b-2 border-red-500 pb-1' : 'text-gray-400 hover:text-white'}`}>Estudio</button>
           <button onClick={() => setView('history')} className={`text-sm transition-colors ${view === 'history' ? 'text-red-400 font-bold border-b-2 border-red-500 pb-1' : 'text-gray-400 hover:text-white'}`}>Historial</button>
+          <button onClick={() => setView('pricing')} className={`text-sm transition-colors ${view === 'pricing' ? 'text-red-400 font-bold border-b-2 border-red-500 pb-1' : 'text-gray-400 hover:text-white'}`}>Créditos</button>
+          <button onClick={() => setView('settings')} className={`text-sm transition-colors ${view === 'settings' ? 'text-red-400 font-bold border-b-2 border-red-500 pb-1' : 'text-gray-400 hover:text-white'}`}>Configuración</button>
           <button onClick={onLogout} className="text-sm text-red-400 hover:text-red-300 transition-colors">Salir</button>
         </div>
       </div>
