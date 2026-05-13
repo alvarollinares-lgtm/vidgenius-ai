@@ -30,7 +30,8 @@ export default function Studio({
   const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
   const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
   const [selectedVoice, setSelectedVoice] = useState('google-es-journey-f');
-  const [selectedVideoModel, setSelectedVideoModel] = useState('pexels');
+  const [selectedVideoModel, setSelectedVideoModel] = useState('wan');
+  const [duration, setDuration] = useState('60'); // 60 segundos por defecto
   const [orientation, setOrientation] = useState<'16:9' | '9:16'>('16:9');
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [isMerging, setIsMerging] = useState(false);
@@ -84,7 +85,11 @@ export default function Studio({
 
     try {
       const formData = new FormData();
-      formData.append('topic', topic);
+      
+      // Inyectamos la duración directamente en el tema para que la IA la respete
+      const topicWithDuration = `${topic} (IMPORTANTE: El guion debe estar escrito para durar aproximadamente ${duration} segundos. Ajusta la longitud de tus palabras estrictamente a este tiempo)`;
+      formData.append('topic', topicWithDuration);
+      
       formData.append('model', selectedModel);
       formData.append('videoModel', selectedVideoModel);
       formData.append('orientation', orientation);
@@ -290,6 +295,10 @@ export default function Studio({
               <option value="gpt-4o-mini">GPT-4o Mini (Rápido, Barato y Excelente)</option>
               <option value="gpt-4o">GPT-4o (El Mejor, Máxima Calidad)</option>
             </optgroup>
+            <optgroup label="Modelos Premium (Vía OpenRouter)">
+              <option value="anthropic/claude-3.5-sonnet">Claude 3.5 Sonnet (El más creativo)</option>
+              <option value="google/gemini-1.5-pro">Gemini 1.5 Pro (Excelente razonamiento)</option>
+            </optgroup>
           </select>
         </div>
         <div className="flex-1">
@@ -301,6 +310,10 @@ export default function Studio({
               <option value="google-es-journey-f">Google Premium (Femenina Hiperrealista)</option>
               <option value="google-es-journey-d">Google Premium (Masculina Hiperrealista)</option>
             </optgroup>
+            <optgroup label="Mis Voces Clonadas">
+              {/* Cuando clones tu voz en ElevenLabs, cambia "TU_VOICE_ID" por el ID real que te den */}
+              <option value="TU_VOICE_ID">🎙️ Mi Propia Voz (Clonada)</option>
+            </optgroup>
           </select>
         </div>
         <div className="flex-1">
@@ -308,9 +321,6 @@ export default function Studio({
           <select value={selectedVideoModel} onChange={(e) => setSelectedVideoModel(e.target.value)} className="w-full p-2 rounded-lg bg-gray-900 border border-gray-600 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all">
             <optgroup label="IA Generativa de Vídeo (APIs Premium)">
               <option value="wan">Wan Video (Vía Fal.ai / Replicate)</option>
-            </optgroup>
-            <optgroup label="Recursos Gratuitos">
-              <option value="pexels">Pexels (Vídeos Reales - Gratis)</option>
             </optgroup>
             <optgroup label="Mis Archivos">
               <option value="custom">📁 Subir mi propio vídeo</option>
@@ -327,6 +337,15 @@ export default function Studio({
           <select value={orientation} onChange={(e) => setOrientation(e.target.value as '16:9' | '9:16')} className="w-full p-2 rounded-lg bg-gray-900 border border-gray-600 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all">
             <option value="16:9">Horizontal (16:9)</option>
             <option value="9:16">Vertical (9:16)</option>
+          </select>
+        </div>
+        <div className="flex-1">
+          <label className="block text-sm font-medium mb-1 text-gray-300">⏱️ Duración Deseada</label>
+          <select value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full p-2 rounded-lg bg-gray-900 border border-gray-600 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none transition-all">
+            <option value="30">Short Rápido (30 seg)</option>
+            <option value="60">TikTok / Reel Estándar (1 minuto)</option>
+            <option value="120">Vídeo Corto (2 minutos)</option>
+            <option value="300">Vídeo Largo (5 minutos)</option>
           </select>
         </div>
       </div>
