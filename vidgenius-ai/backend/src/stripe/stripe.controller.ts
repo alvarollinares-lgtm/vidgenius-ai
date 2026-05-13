@@ -35,8 +35,8 @@ export class StripeController {
         quantity: 1,
       }],
       mode: 'payment',
-      success_url: `${this.configService.get('FRONTEND_URL', 'http://localhost:5173')}/studio?payment=success`,
-      cancel_url: `${this.configService.get('FRONTEND_URL', 'http://localhost:5173')}/studio?payment=cancelled`,
+      success_url: `${this.configService.get('FRONTEND_URL', 'http://localhost:5173')}/?payment=success`,
+      cancel_url: `${this.configService.get('FRONTEND_URL', 'http://localhost:5173')}/?payment=cancelled`,
       // ¡Magia! Guardamos el ID del usuario y los créditos en texto
       metadata: {
         userId: body.userId.toString(),
