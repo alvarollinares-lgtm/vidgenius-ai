@@ -371,13 +371,25 @@ REGLAS ESTRICTAS:
   async generateAudio(script: string, voiceId: string = 'google-es-journey-f') {
     try {
       const cleanScript = this._cleanScriptForTTS(script);
+      
+      // Desempaquetamos el truco del Frontend
+      let actualVoiceId = voiceId;
+      let stability = 0.5;
+      let similarityBoost = 0.75;
+      
+      if (voiceId.includes('|')) {
+        const parts = voiceId.split('|');
+        actualVoiceId = parts[0];
+        stability = parseFloat(parts[1]);
+        similarityBoost = parseFloat(parts[2]);
+      }
 
       // --- PLAN GOOGLE CLOUD TTS ---
-      if (voiceId.startsWith('google-')) {
+      if (actualVoiceId.startsWith('google-')) {
         this.logger.log('Generando voz con Google Cloud Premium...');
         
         // Mapeamos nuestro ID personalizado al nombre de la voz real de Google
-        const googleVoiceName = voiceId === 'google-es-journey-f' 
+        const googleVoiceName = actualVoiceId === 'google-es-journey-f' 
           ? 'es-ES-Journey-F' // Mujer
           : 'es-ES-Journey-D'; // Hombre
 
@@ -406,7 +418,7 @@ REGLAS ESTRICTAS:
       }
 
       // --- PLAN ELEVENLABS ---
-      const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`, {
+      const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${actualVoiceId}?output_format=mp3_44100_128`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -415,7 +427,7 @@ REGLAS ESTRICTAS:
         body: JSON.stringify({
           text: cleanScript,
           model_id: 'eleven_multilingual_v2', // Soporta español perfecto
-          voice_settings: { stability: 0.5, similarity_boost: 0.75 }
+          voice_settings: { stability: stability, similarity_boost: similarityBoost }
         }),
       });
 

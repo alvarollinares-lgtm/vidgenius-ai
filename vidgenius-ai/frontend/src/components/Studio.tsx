@@ -33,6 +33,9 @@ export default function Studio({
   const [selectedVideoModel, setSelectedVideoModel] = useState('wan');
   const [duration, setDuration] = useState('60'); // 60 segundos por defecto
   const [orientation, setOrientation] = useState<'16:9' | '9:16'>('16:9');
+  const [stability, setStability] = useState(0.5);
+  const [similarity, setSimilarity] = useState(0.75);
+  const [showAdvancedVoice, setShowAdvancedVoice] = useState(false);
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [isMerging, setIsMerging] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -157,6 +160,9 @@ export default function Studio({
 
     setIsReading(true);
     setMessage('🎤 Generando voz hiperrealista (esto puede tardar unos segundos)...');
+    
+    // Truco: Enviamos los parámetros concatenados en el ID de la voz
+    const voicePayload = selectedVoice === 'browser' ? selectedVoice : `${selectedVoice}|${stability}|${similarity}`;
 
     try {
       const response = await fetch(`${API_URL}/ai/generate-audio`, {
@@ -165,7 +171,7 @@ export default function Studio({
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}` 
         },
-        body: JSON.stringify({ script, voiceId: selectedVoice }),
+        body: JSON.stringify({ script, voiceId: voicePayload }),
       });
 
       if (!response.ok) throw new Error('Error al generar audio');
@@ -201,7 +207,7 @@ export default function Studio({
     setMessage('🎬 Produciendo vídeo final... (Esto puede tardar unos segundos)');
 
     try {
-      const voiceToUse = selectedVoice === 'browser' ? 'google-es-journey-f' : selectedVoice;
+      const voiceToUse = selectedVoice === 'browser' ? 'google-es-journey-f' : `${selectedVoice}|${stability}|${similarity}`;
       
       const response = await fetch(`${API_URL}/ai/merge-video`, {
         method: 'POST',
@@ -315,6 +321,22 @@ export default function Studio({
               <option value="TU_VOICE_ID">🎙️ Mi Propia Voz (Clonada)</option>
             </optgroup>
           </select>
+          
+          <button type="button" onClick={() => setShowAdvancedVoice(!showAdvancedVoice)} className="text-xs text-red-400 hover:text-red-300 mt-2 flex items-center gap-1 font-medium transition-colors">
+            {showAdvancedVoice ? '▲ Ocultar Ajustes' : '▼ ⚙️ Ajustes Avanzados de Voz'}
+          </button>
+          
+          {showAdvancedVoice && (
+            <div className="mt-2 p-3 bg-gray-900 border border-gray-700 rounded-lg animate-fade-in-up">
+              <label className="block text-[11px] font-bold text-gray-400 mb-1">Estabilidad ({stability})</label>
+              <input type="range" min="0" max="1" step="0.05" value={stability} onChange={e => setStability(parseFloat(e.target.value))} className="w-full accent-red-500 mb-1" />
+              <p className="text-[10px] text-gray-500 mb-3 leading-tight">Menos = Más emocional e impredecible.<br/>Más = Estable y parejo.</p>
+              
+              <label className="block text-[11px] font-bold text-gray-400 mb-1">Similitud ({similarity})</label>
+              <input type="range" min="0" max="1" step="0.05" value={similarity} onChange={e => setSimilarity(parseFloat(e.target.value))} className="w-full accent-red-500 mb-1" />
+              <p className="text-[10px] text-gray-500 leading-tight">Más = Clon exacto (riesgo de ruido).<br/>Menos = Voz más fluida.</p>
+            </div>
+          )}
         </div>
         <div className="flex-1">
           <label className="block text-sm font-medium mb-1 text-gray-300">🎥 Vídeo de Fondo</label>
